@@ -12,9 +12,9 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-                with:
-                    fetch-depth: 0
-                    submodules: "recursive"
+            with:
+                fetch-depth: 0
+                submodules: "recursive"
 
             - name: List changes
                 shell: cmd
