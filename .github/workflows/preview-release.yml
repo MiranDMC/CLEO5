@@ -1,0 +1,27 @@
+name: Update Preview Release
+
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - master
+
+jobs:
+    create:
+        runs-on: windows-2022
+
+        steps:
+            - uses: actions/checkout@v4
+                with:
+                    fetch-depth: 0
+                    submodules: "recursive"
+
+            - name: List changes
+                shell: cmd
+                run: |
+                    rem Find last tag
+                    for /F %%i in ('git describe --tags --abbrev^=0') do set tag=%%i
+                    if %tag%=="" (echo ::error::Last tag not found!& exit 1)
+                    echo ## Changes since %tag%:
+                    git show -s --format="* %%s" %tag%..HEAD
+                    echo Done
