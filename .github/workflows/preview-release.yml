@@ -1,15 +1,15 @@
 name: Update Preview Release
 
 on:
-  workflow_dispatch: -- manuall trigger
+  workflow_dispatch:
   
   push:
     branches:
       - master
 
-  create: -- tag added
+  create:
       
-  delete: -- tag removed
+  delete:
 
 jobs:
   create:
