@@ -8,12 +8,8 @@ on:
       - master
 
   create: -- tag added
-    branches:
-      - master
       
   delete: -- tag removed
-    branches:
-      - master
 
 jobs:
   create:
