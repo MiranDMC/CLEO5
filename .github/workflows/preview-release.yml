@@ -20,10 +20,12 @@ jobs:
         run: |
           rem Find last tag
           for /F %%i in ('git describe --tags --abbrev^=0') do set tag=%%i
+          echo Tag: %tag%
           if %tag%=="" (echo ::error::Last tag not found!& exit 1)
           rem Check for commits since the tag
           for /F %%i in ('git rev-list %tag%..HEAD') do set commits=%%i
           if %commits%=="" (echo No commits& exit 0)
+          echo Commits: %commits%
           echo ## Changes since %tag%:
           git show -s --format="* %%s" %tag%..HEAD
           echo Done
