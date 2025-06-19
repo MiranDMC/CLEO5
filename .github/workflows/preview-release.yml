@@ -2,6 +2,11 @@ name: Update Preview Release
 
 on:
   workflow_dispatch:
+
+  tag:
+    branches:
+      - master
+
   push:
     branches:
       - master
