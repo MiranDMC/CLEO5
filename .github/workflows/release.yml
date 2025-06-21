@@ -49,7 +49,7 @@ jobs:
 #          filename: './.output/Release/cleo.asi'
 
       - name: Core - VirusTotal Scan
-        if: ${{ secrets.VT_KEY != '' }}
+        if: ${{ secrets != '' && secrets.VT_KEY != '' }}
         id: scan_core
         uses: crazy-max/ghaction-virustotal@v4
         with:
@@ -57,7 +57,7 @@ jobs:
           files: './.output/Release/CLEO.asi'
           
       - name: Core - VirusTotal Log
-        if: ${{ secrets.VT_KEY != '' }}
+        if: ${{ secrets != '' && secrets.VT_KEY != '' }}
         run: echo "::notice::${{steps.scan_core.outputs.analysis}}"
 
       - name: Plugins - Build
@@ -82,7 +82,7 @@ jobs:
 #          folder: './cleo_plugins/.output'
           
       - name: Plugins - VirusTotal Scan
-        if: ${{ secrets.VT_KEY != '' }}
+        if: ${{ secrets != '' && secrets.VT_KEY != '' }}
         id: scan_plugins
         uses: crazy-max/ghaction-virustotal@v4
         with:
@@ -90,7 +90,7 @@ jobs:
           files: './cleo_plugins/.output/*.cleo'
           
       - name: Plugins - VirusTotal Log
-        if: ${{ secrets.VT_KEY != '' }}
+        if: ${{ secrets != '' && secrets.VT_KEY != '' }}
         run: echo "::notice::${{steps.scan_plugins.outputs.analysis}}"
 
       - name: Gather Output Files
