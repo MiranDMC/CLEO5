@@ -18,7 +18,7 @@ jobs:
       - name: Set up MsBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Read Version Tag
+      - name: Read version tag
         id: read_version
         run: node.exe .github/workflows/version.js
 
@@ -144,7 +144,7 @@ jobs:
           powershell.exe -NoP -NonI -Command "Expand-Archive '.\ual.zip' '.\.output\Release_with_Ultimate_ASI_Loader'"
           rm .\.output\Release_with_Ultimate_ASI_Loader\vorbisFile-Win32.SHA512
 
-      - name: Pack CLEO
+      - name: Pack archive - CLEO
         uses: ThirteenAG/zip-release@master
         with:
           path: ./.output/Release/*
@@ -152,7 +152,7 @@ jobs:
           filename: SA.CLEO-${{ github.ref_name }}.zip
           exclusions: "*.pdb *.lib *.exp"
 
-      - name: Pack CLEO + Silent's ASI Loader
+      - name: Pack archive - CLEO + Silent's ASI Loader
         uses: ThirteenAG/zip-release@master
         with:
           path: ./.output/Release_with_Silent_ASI_Loader/*
@@ -160,7 +160,7 @@ jobs:
           filename: SA.CLEO-${{ github.ref_name }}+Silent_ASI_Loader.zip
           exclusions: "*.pdb *.lib *.exp"
 
-      - name: Pack CLEO + UAL
+      - name: Pack archive - CLEO + UAL
         uses: ThirteenAG/zip-release@master
         with:
           path: ./.output/Release_with_Ultimate_ASI_Loader/*
@@ -168,7 +168,7 @@ jobs:
           filename: SA.CLEO-${{ github.ref_name }}+Ultimate_ASI_Loader.zip
           exclusions: "*.pdb *.lib *.exp"
 
-      - name: Pack CLEO SDK
+      - name: Pack archive - CLEO SDK
         uses: ThirteenAG/zip-release@master
         with:
           path: ./cleo_sdk/*
@@ -176,7 +176,7 @@ jobs:
           filename: SA.CLEO_SDK-${{ github.ref_name }}.zip
           exclusions: "*.pdb *.exp"
           
-      - name: Upload files
+      - name: Create release
         uses: ncipollo/release-action@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
