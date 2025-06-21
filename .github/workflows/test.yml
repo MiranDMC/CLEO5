@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  Test_Build:
     runs-on: windows-2022
 
     steps:
@@ -84,7 +84,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           compression-level: 9
-          name: SA.CLEO-v${{steps.custom_build.outputs.version}}-${{ steps.custom_build.outputs.sha }}
+          name: SA.CLEO-v${{steps.custom_build.outputs.version}}-${{steps.custom_build.outputs.sha}}
           path: |
             .output\Release\*
             !.output\Release\*.pdb

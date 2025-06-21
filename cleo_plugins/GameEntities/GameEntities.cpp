@@ -58,7 +58,7 @@ public:
 		Instance.carSearchState.clear();
 		Instance.objectSearchState.clear();
 	}
-BUG
+
 	// store_closest_entities
 	// [var carHandle: Car], [var charHandle: Char] = store_closest_entities [Char]
 	static OpcodeResult __stdcall opcode_0AB5(CRunningScript* thread)
