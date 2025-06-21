@@ -37,38 +37,45 @@ jobs:
           powershell -Command "foreach($line in Get-Content 'output.log') { $m = $line -match '^(.*)\((\d+),(\d+)\): (\w+) (.*) \[.*\]$'; if ($m) {$m = $Matches; echo ('::'+$m[4]+' file='+$m[1]+',line='+$m[2]+',title=SDK compilation::'+$m[5])} else {echo ('::error title=SDK compilation::' + $line)} }"
           for %%R in (output.log) do if not %%~zR lss 1 (exit 1)
 
-      - name: Core - VirusTotal Scan
-        id: scan_core
-        uses: crazy-max/ghaction-virustotal@v4
-        with:
-          vt_api_key: ${{ secrets.VT_KEY }}
-          files: './.output/Release/CLEO.asi'
-          
-      - name: Core - VirusTotal Scan Log
-        run: echo "::notice::${{steps.scan_core.outputs.analysis}}"
+#      - name: Core - VirusTotal Scan
+#        id: scan_core
+#        uses: crazy-max/ghaction-virustotal@v4
+#        with:
+#          vt_api_key: ${{ secrets.VT_KEY }}
+#          files: './.output/Release/CLEO.asi'
+#          
+#      - name: Core - VirusTotal Log
+#        run: echo "::notice::${{steps.scan_core.outputs.analysis}}"
 
       - name: Plugins - Build
         shell: cmd
         run: |
+          @echo off
           set PLUGIN_SDK_DIR=%GITHUB_WORKSPACE%\third-party\plugin-sdk
-          msbuild -m cleo_plugins/CLEO_Plugins.sln /property:Configuration=Release /property:Platform=x86
+          msbuild cleo_plugins/CLEO_Plugins.sln /property:Configuration=Release /property:Platform=x86 /m /fileLogger1 /fileLoggerParameters1:warningsOnly;errorsOnly;logfile=output.log
+          powershell -Command "(gc output.log) | sort | get-unique > output.log"
+          powershell -Command "(gc output.log) -replace '     \d>','' -replace '.:\\a\\plugin-sdk\\plugin-sdk\\','' | Out-File -encoding ASCII output.log"
+          powershell -Command "foreach($line in Get-Content 'output.log') { $m = $line -match '^(.*)\((\d+),(\d+)\): (\w+) (.*) \[.*\]$'; if ($m) {$m = $Matches; echo ('::'+$m[4]+' file='+$m[1]+',line='+$m[2]+',title=SDK compilation::'+$m[5])} else {echo ('::error title=SDK compilation::' + $line)} }"
+          for %%R in (output.log) do if not %%~zR lss 1 (exit 1)
           
-      - name: Plugins - VirusTotal Scan
-        uses: crazy-max/ghaction-virustotal@v4
-        with:
-          vt_api_key: ${{ secrets.VT_KEY }}
-          files: './cleo_plugins/.output/*.cleo'
+#      - name: Plugins - VirusTotal Scan
+#        id: scan_plugins
+#        uses: crazy-max/ghaction-virustotal@v4
+#        with:
+#          vt_api_key: ${{ secrets.VT_KEY }}
+#          files: './cleo_plugins/.output/*.cleo'
+#          
+#      - name: Plugins - VirusTotal Log
+#        run: echo "::notice::${{steps.scan_plugins.outputs.analysis}}"
 
       - name: Gather Output Files
-        id: prepare_archive
         shell: cmd
         run: |
-          @REM create output directory
+          @echo Create directories
           mkdir .output\Release\cleo
           mkdir .output\Release\cleo\cleo_plugins
 
-          @REM copy files
-          copy third-party\bass\bass.dll .output\Release\bass.dll
+          @echo Copy files
           copy source\cleo_config.ini .output\Release\cleo\.cleo_config.ini
           copy cleo_plugins\.output\*.cleo .output\Release\cleo\cleo_plugins
           copy cleo_plugins\.output\*.ini .output\Release\cleo\cleo_plugins
@@ -76,7 +83,7 @@ jobs:
       - name: Upload Result
         uses: actions/upload-artifact@v4
         with:
-          compression-level: 6
+          compression-level: 9
           name: SA.CLEO-v${{steps.custom_build.outputs.version}}-${{ steps.custom_build.outputs.sha }}
           path: |
             .output\Release\*
