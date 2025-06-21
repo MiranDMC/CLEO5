@@ -89,6 +89,7 @@ jobs:
           copy cleo_plugins\.output\*.ini .output\Release\cleo\cleo_plugins
 
       - name: Upload Result
+        id: upload
         uses: actions/upload-artifact@v4
         with:
           compression-level: 9
@@ -98,3 +99,7 @@ jobs:
             !.output\Release\*.pdb
             !.output\Release\*.lib
             !.output\Release\*.exp
+            
+      - name: Log result link
+        shell: cmd
+        run: echo ::notice::[Download]^(v${{steps.upload.outputs.artifact-url}}^)
