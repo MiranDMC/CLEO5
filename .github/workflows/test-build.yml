@@ -1,13 +1,16 @@
 name: Test Build
 
 on:
+  workflow_dispatch: # manually
   push:
     branches-ignore:
-    - "master" # accepts only merge from already tested branches
+    - "master" # master accepts only merges from already tested branches
     paths-ignore:
     - ".github/*"
+    - "*.bat"
+    - "*.chm"
+    - "*.ini"
     - "*.md"
-  workflow_dispatch:
 
 jobs:
   Test_Build:
@@ -46,10 +49,10 @@ jobs:
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: './.output/Release/CLEO.asi'
-          
+
       - name: Core - VirusTotal log
         if: steps.scan_core.outcome == 'success'
-        run: echo "::notice::${{steps.scan_core.outputs.analysis}}"
+        run: echo "::notice title=CLEO Core virus scan::${{steps.scan_core.outputs.analysis}}"
 
       - name: Plugins - Build
         shell: cmd
@@ -61,7 +64,7 @@ jobs:
           powershell -Command "(gc output.log) -replace '     \d>','' -replace '.:\\a\\plugin-sdk\\plugin-sdk\\','' | Out-File -encoding ASCII output.log"
           powershell -Command "foreach($line in Get-Content 'output.log') { $m = $line -match '^(.*)\((\d+),(\d+)\): (\w+) (.*) \[.*\]$'; if ($m) {$m = $Matches; echo ('::'+$m[4]+' file='+$m[1]+',line='+$m[2]+',title=Plugins compilation::'+$m[5])} else {echo ('::error title=Plugins compilation::' + $line)} }"
           for %%R in (output.log) do if not %%~zR lss 1 (exit 1)
-          
+
       - name: Plugins - VirusTotal scan
         id: scan_plugins
         env:
@@ -71,10 +74,10 @@ jobs:
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: './cleo_plugins/.output/*.cleo'
-          
+
       - name: Plugins - VirusTotal log
         if: steps.scan_plugins.outcome == 'success'
-        run: echo "::notice::${{steps.scan_plugins.outputs.analysis}}"
+        run: echo "::notice title=CLEO Core virus scan::${{steps.scan_plugins.outputs.analysis}}"
 
       - name: Gather output files
         shell: cmd
@@ -82,7 +85,7 @@ jobs:
           @echo Create directories
           mkdir .output\Release\cleo
           mkdir .output\Release\cleo\cleo_plugins
-          
+
           @echo Copy files
           copy source\cleo_config.ini .output\Release\cleo\.cleo_config.ini
           copy cleo_plugins\.output\*.cleo .output\Release\cleo\cleo_plugins
@@ -99,8 +102,6 @@ jobs:
             !.output\Release\*.pdb
             !.output\Release\*.lib
             !.output\Release\*.exp
-            
+
       - name: Log download link
-        shell: cmd
-        run: |
-          @echo ::notice title=Download::${{steps.upload.outputs.artifact-url}}
+        run: echo "::notice title=Download this build::${{steps.upload.outputs.artifact-url}}"

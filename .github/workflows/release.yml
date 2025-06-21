@@ -43,7 +43,7 @@ jobs:
 #          timestampUrl: 'http://timestamp.digicert.com'
 #          filename: './.output/Release/cleo.asi'
 
-      - name: Core - VirusTotal Scan
+      - name: Core - VirusTotal scan
         id: scan_core
         env:
           vt_key: ${{secrets.VT_KEY}}
@@ -52,10 +52,10 @@ jobs:
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: './.output/Release/CLEO.asi'
-          
-      - name: Core - VirusTotal Log
+
+      - name: Core - VirusTotal log
         if: steps.scan_core.outcome == 'success'
-        run: echo "::notice::${{steps.scan_core.outputs.analysis}}"
+        run: echo "::notice title=CLEO Core virus scan::${{steps.scan_core.outputs.analysis}}"
 
       - name: Plugins - Build
         shell: cmd
@@ -77,8 +77,8 @@ jobs:
 #          description: 'CLEO 5 Plugin'
 #          timestampUrl: 'http://timestamp.digicert.com'
 #          folder: './cleo_plugins/.output'
-          
-      - name: Plugins - VirusTotal Scan
+
+      - name: Plugins - VirusTotal scan
         id: scan_plugins
         env:
           vt_key: ${{secrets.VT_KEY}}
@@ -87,10 +87,10 @@ jobs:
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: './cleo_plugins/.output/*.cleo'
-          
-      - name: Plugins - VirusTotal Log
+
+      - name: Plugins - VirusTotal log
         if: steps.scan_plugins.outcome == 'success'
-        run: echo "::notice::${{steps.scan_plugins.outputs.analysis}}"
+        run: echo "::notice title=CLEO Core virus scan::${{steps.scan_plugins.outputs.analysis}}"
 
       - name: Gather output files
         shell: cmd
@@ -111,10 +111,10 @@ jobs:
           copy cleo_plugins\.output\*.ini .output\Release\cleo\cleo_plugins
           copy cleo_plugins\Audio\bass\bass.dll .output\Release\bass.dll
           xcopy /E /I examples .output\Release\cleo_readme\examples
-          
+
           @echo Download Sanny Builder Library json
           curl https://raw.githubusercontent.com/sannybuilder/library/master/sa/sa.json -o .output\Release\cleo\.config\sa.json
-          
+
           @echo Copy SDK
           copy .output\Release\CLEO.lib cleo_sdk\CLEO.lib
 
@@ -175,7 +175,7 @@ jobs:
           type: "zip"
           filename: SA.CLEO_SDK-${{ github.ref_name }}.zip
           exclusions: "*.pdb *.exp"
-          
+
       - name: Create release
         uses: ncipollo/release-action@main
         with:
