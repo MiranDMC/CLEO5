@@ -38,15 +38,17 @@ jobs:
           for %%R in (output.log) do if not %%~zR lss 1 (exit 1)
 
       - name: Core - VirusTotal Scan
-        if: ${{ secrets != '' && secrets.VT_KEY != '' }}
         id: scan_core
+        env:
+          vt_key: ${{secrets.VT_KEY}}
+        if: ${{env.vt_key != ''}}
         uses: crazy-max/ghaction-virustotal@v4
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: './.output/Release/CLEO.asi'
           
       - name: Core - VirusTotal Log
-        if: ${{ secrets != '' && secrets.VT_KEY != '' }}
+        if: steps.scan_core.outcome == 'success'
         run: echo "::notice::${{steps.scan_core.outputs.analysis}}"
 
       - name: Plugins - Build
@@ -61,15 +63,17 @@ jobs:
           for %%R in (output.log) do if not %%~zR lss 1 (exit 1)
           
       - name: Plugins - VirusTotal Scan
-        if: ${{ secrets != '' && secrets.VT_KEY != '' }}
         id: scan_plugins
+        env:
+          vt_key: ${{secrets.VT_KEY}}
+        if: ${{env.vt_key != ''}}
         uses: crazy-max/ghaction-virustotal@v4
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: './cleo_plugins/.output/*.cleo'
           
       - name: Plugins - VirusTotal Log
-        if: ${{ secrets != '' && secrets.VT_KEY != '' }}
+        if: steps.scan_plugins.outcome == 'success'
         run: echo "::notice::${{steps.scan_plugins.outputs.analysis}}"
 
       - name: Gather Output Files
