@@ -1,4 +1,4 @@
-name: CLEO 5 Release Build
+name: Release
 
 on:
   push:
@@ -6,18 +6,20 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+**'
 
 jobs:
-  build:
+  Release:
     runs-on: windows-2022
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           submodules: "recursive"
 
-      - name: Add msbuild to PATH
+      - name: Setup msbuild
         uses: microsoft/setup-msbuild@v2
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
@@ -28,8 +30,13 @@ jobs:
       - name: Core - Build
         shell: cmd
         run: |
+          @echo off
           set PLUGIN_SDK_DIR=%GITHUB_WORKSPACE%\third-party\plugin-sdk
-          msbuild -m CLEO5.sln /property:Configuration=Release /property:Platform=GTASA
+          msbuild CLEO5.sln /property:Configuration=Release /property:Platform=GTASA /m /fileLogger1 /fileLoggerParameters1:warningsOnly;errorsOnly;logfile=output.log
+          powershell -Command "(gc output.log) | sort | get-unique > output.log"
+          powershell -Command "(gc output.log) -replace '     \d>','' -replace '.:\\a\\plugin-sdk\\plugin-sdk\\','' | Out-File -encoding ASCII output.log"
+          powershell -Command "foreach($line in Get-Content 'output.log') { $m = $line -match '^(.*)\((\d+),(\d+)\): (\w+) (.*) \[.*\]$'; if ($m) {$m = $Matches; echo ('::'+$m[4]+' file='+$m[1]+',line='+$m[2]+',title=Core compilation::'+$m[5])} else {echo ('::error title=Core compilation::' + $line)} }"
+          for %%R in (output.log) do if not %%~zR lss 1 (exit 1)
 
 #      - name: Core - Sign
 #        uses: x87/code-sign-action@develop
@@ -42,16 +49,27 @@ jobs:
 #          filename: './.output/Release/cleo.asi'
 
       - name: Core - VirusTotal Scan
+        if: ${{ secrets.VT_KEY != '' }}
+        id: scan_core
         uses: crazy-max/ghaction-virustotal@v4
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: './.output/Release/CLEO.asi'
+          
+      - name: Core - VirusTotal Log
+        if: ${{ secrets.VT_KEY != '' }}
+        run: echo "::notice::${{steps.scan_core.outputs.analysis}}"
 
       - name: Plugins - Build
         shell: cmd
         run: |
+          @echo off
           set PLUGIN_SDK_DIR=%GITHUB_WORKSPACE%\third-party\plugin-sdk
-          msbuild -m cleo_plugins/CLEO_Plugins.sln /property:Configuration=Release /property:Platform=x86
+          msbuild cleo_plugins/CLEO_Plugins.sln /property:Configuration=Release /property:Platform=x86 /m /fileLogger1 /fileLoggerParameters1:warningsOnly;errorsOnly;logfile=output.log
+          powershell -Command "(gc output.log) | sort | get-unique > output.log"
+          powershell -Command "(gc output.log) -replace '     \d>','' -replace '.:\\a\\plugin-sdk\\plugin-sdk\\','' | Out-File -encoding ASCII output.log"
+          powershell -Command "foreach($line in Get-Content 'output.log') { $m = $line -match '^(.*)\((\d+),(\d+)\): (\w+) (.*) \[.*\]$'; if ($m) {$m = $Matches; echo ('::'+$m[4]+' file='+$m[1]+',line='+$m[2]+',title=Plugins compilation::'+$m[5])} else {echo ('::error title=Plugins compilation::' + $line)} }"
+          for %%R in (output.log) do if not %%~zR lss 1 (exit 1)
 
 #      - name: Plugins - Sign
 #        uses: x87/code-sign-action@develop
@@ -64,16 +82,22 @@ jobs:
 #          folder: './cleo_plugins/.output'
           
       - name: Plugins - VirusTotal Scan
+        if: ${{ secrets.VT_KEY != '' }}
+        id: scan_plugins
         uses: crazy-max/ghaction-virustotal@v4
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: './cleo_plugins/.output/*.cleo'
+          
+      - name: Plugins - VirusTotal Log
+        if: ${{ secrets.VT_KEY != '' }}
+        run: echo "::notice::${{steps.scan_plugins.outputs.analysis}}"
 
       - name: Gather Output Files
         id: prepare_archive
         shell: cmd
         run: |
-          @REM create output directory
+          @echo Create directories
           mkdir .output\Release\cleo
           mkdir .output\Release\cleo\.config
           mkdir .output\Release\cleo\cleo_modules
@@ -83,30 +107,27 @@ jobs:
           mkdir .output\Release\cleo_readme
           mkdir .output\Release\cleo_readme\examples
 
-          @REM copy files
+          @echo Copy files
           copy source\cleo_config.ini .output\Release\cleo\.cleo_config.ini
           copy cleo_plugins\.output\*.cleo .output\Release\cleo\cleo_plugins
           copy cleo_plugins\.output\*.ini .output\Release\cleo\cleo_plugins
           copy cleo_plugins\Audio\bass\bass.dll .output\Release\bass.dll
-          @REM xcopy /E /I tests .output\Release\cleo
           xcopy /E /I examples .output\Release\cleo_readme\examples
-
-          @REM copy SDK
-          copy .output\Release\CLEO.lib cleo_sdk\CLEO.lib
           
-          @REM download Sanny Builder Library json
+          @echo Download Sanny Builder Library json
           curl https://raw.githubusercontent.com/sannybuilder/library/master/sa/sa.json -o .output\Release\cleo\.config\sa.json
+          
+          @echo Copy SDK
+          copy .output\Release\CLEO.lib cleo_sdk\CLEO.lib
 
       - name: Convert Markdown to HTML
-        id: md_to_html
         run: |
           npm install showdown
           node.exe .github/workflows/markdown.js
-          move README.html .output\Release\cleo_readme\README.html
-          move CHANGELOG.html .output\Release\cleo_readme\CHANGELOG.html
+          move README.html .output\Release\cleo_readme\Readme.html
+          move CHANGELOG.html .output\Release\cleo_readme\Changelog.html
 
       - name: Download ASI Loaders
-        id: download_asi_loaders
         shell: cmd
         run: |
           xcopy /E /I .output\Release .output\Release_with_Silent_ASI_Loader
@@ -148,7 +169,7 @@ jobs:
           filename: SA.CLEO-${{ github.ref_name }}+Ultimate_ASI_Loader.zip
           exclusions: "*.pdb *.lib *.exp"
 
-      - name: CLEO SDK
+      - name: Pack CLEO SDK
         uses: ThirteenAG/zip-release@master
         with:
           path: ./cleo_sdk/*
@@ -156,7 +177,7 @@ jobs:
           filename: SA.CLEO_SDK-${{ github.ref_name }}.zip
           exclusions: "*.pdb *.exp"
           
-      - name: Upload Release
+      - name: Upload files
         uses: ncipollo/release-action@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
