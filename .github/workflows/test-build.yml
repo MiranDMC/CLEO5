@@ -100,6 +100,6 @@ jobs:
             !.output\Release\*.lib
             !.output\Release\*.exp
             
-      - name: Log result link
+      - name: Log download link
         shell: cmd
-        run: echo ::notice::[Download]^(v${{steps.upload.outputs.artifact-url}}^)
+        run: @echo ::notice title=Download::${{steps.upload.outputs.artifact-url}}
