@@ -37,7 +37,7 @@ jobs:
           fetch-depth: 0
           submodules: "recursive"
           
-      - name: Tag Custom build with current commit SHA
+      - name: Tag with current commit SHA
         id: custom_build
         run: node.exe .github/workflows/tag-custom-build.js
 
