@@ -102,4 +102,5 @@ jobs:
             
       - name: Log download link
         shell: cmd
-        run: @echo ::notice title=Download::${{steps.upload.outputs.artifact-url}}
+        run: |
+          @echo ::notice title=Download::${{steps.upload.outputs.artifact-url}}
