@@ -15,13 +15,8 @@ jobs:
         with:
           submodules: "recursive"
 
-      - name: Setup msbuild
+      - name: Set up MsBuild
         uses: microsoft/setup-msbuild@v2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
 
       - name: Read Version Tag
         id: read_version
@@ -49,15 +44,17 @@ jobs:
 #          filename: './.output/Release/cleo.asi'
 
       - name: Core - VirusTotal Scan
-        if: ${{ secrets != '' && secrets.VT_KEY != '' }}
         id: scan_core
+        env:
+          vt_key: ${{secrets.VT_KEY}}
+        if: ${{env.vt_key != ''}}
         uses: crazy-max/ghaction-virustotal@v4
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: './.output/Release/CLEO.asi'
           
       - name: Core - VirusTotal Log
-        if: ${{ secrets != '' && secrets.VT_KEY != '' }}
+        if: steps.scan_core.outcome == 'success'
         run: echo "::notice::${{steps.scan_core.outputs.analysis}}"
 
       - name: Plugins - Build
@@ -82,19 +79,20 @@ jobs:
 #          folder: './cleo_plugins/.output'
           
       - name: Plugins - VirusTotal Scan
-        if: ${{ secrets != '' && secrets.VT_KEY != '' }}
         id: scan_plugins
+        env:
+          vt_key: ${{secrets.VT_KEY}}
+        if: ${{env.vt_key != ''}}
         uses: crazy-max/ghaction-virustotal@v4
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: './cleo_plugins/.output/*.cleo'
           
       - name: Plugins - VirusTotal Log
-        if: ${{ secrets != '' && secrets.VT_KEY != '' }}
+        if: steps.scan_plugins.outcome == 'success'
         run: echo "::notice::${{steps.scan_plugins.outputs.analysis}}"
 
-      - name: Gather Output Files
-        id: prepare_archive
+      - name: Gather output files
         shell: cmd
         run: |
           @echo Create directories
@@ -130,22 +128,23 @@ jobs:
       - name: Download ASI Loaders
         shell: cmd
         run: |
+          @echo Copy files
           xcopy /E /I .output\Release .output\Release_with_Silent_ASI_Loader
           xcopy /E /I .output\Release .output\Release_with_Ultimate_ASI_Loader
 
-          @REM install Silent's ASI Loader
+          @echo Install Silent's ASI Loader
           curl https://silent.rockstarvision.com/uploads/silents_asi_loader_13.zip -o silents_asi_loader_13.zip
           powershell.exe -NoP -NonI -Command "Expand-Archive '.\silents_asi_loader_13.zip' '.\.output\Release_with_Silent_ASI_Loader'"
           move .output\Release_with_Silent_ASI_Loader\ReadMe.txt ".output\Release_with_Silent_ASI_Loader\cleo_readme\ASI Loader Readme.txt"
           rmdir /s /q .output\Release_with_Silent_ASI_Loader\advanced_plugin_management_example
           rmdir /s /q .output\Release_with_Silent_ASI_Loader\scripts
 
-          @REM install Ultimate ASI Loader
+          @echo Install Ultimate ASI Loader
           curl https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/Win32-latest/vorbisFile-Win32.zip -L -o ual.zip
           powershell.exe -NoP -NonI -Command "Expand-Archive '.\ual.zip' '.\.output\Release_with_Ultimate_ASI_Loader'"
           rm .\.output\Release_with_Ultimate_ASI_Loader\vorbisFile-Win32.SHA512
 
-      - name: Pack Base Archive
+      - name: Pack CLEO
         uses: ThirteenAG/zip-release@master
         with:
           path: ./.output/Release/*
@@ -153,7 +152,7 @@ jobs:
           filename: SA.CLEO-${{ github.ref_name }}.zip
           exclusions: "*.pdb *.lib *.exp"
 
-      - name: Pack Base + Silent's ASI Loader
+      - name: Pack CLEO + Silent's ASI Loader
         uses: ThirteenAG/zip-release@master
         with:
           path: ./.output/Release_with_Silent_ASI_Loader/*
@@ -161,7 +160,7 @@ jobs:
           filename: SA.CLEO-${{ github.ref_name }}+Silent_ASI_Loader.zip
           exclusions: "*.pdb *.lib *.exp"
 
-      - name: Pack Base + UAL
+      - name: Pack CLEO + UAL
         uses: ThirteenAG/zip-release@master
         with:
           path: ./.output/Release_with_Ultimate_ASI_Loader/*
