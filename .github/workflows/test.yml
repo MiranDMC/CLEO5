@@ -1,7 +1,9 @@
-name: CLEO 5 Test Build
+name: Test Build
 
 on:
   push:
+    branches-ignore:
+    - "master" # accepts only merge from already tested branches
     paths-ignore:
     - ".github/*"
     - "*.md"
@@ -12,11 +14,12 @@ jobs:
     runs-on: windows-2022
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           submodules: "recursive"
 
-      - name: Add msbuild to PATH
+      - name: Setup msbuild
         uses: microsoft/setup-msbuild@v2
 
       - name: Tag Custom build with current commit SHA
@@ -26,14 +29,20 @@ jobs:
       - name: Core - Build
         shell: cmd
         run: |
+          @echo off
           set PLUGIN_SDK_DIR=%GITHUB_WORKSPACE%\third-party\plugin-sdk
-          msbuild -m CLEO5.sln /property:Configuration=Release /property:Platform=GTASA
+          msbuild CLEO5.sln /property:Configuration=Release /property:Platform=GTASA /m /fileLogger1 /fileLoggerParameters1:warningsOnly;errorsOnly;logfile=output.log
+          powershell -Command "(gc output.log) | sort | get-unique > output.log"
+          powershell -Command "(gc output.log) -replace '     \d>','' -replace '.:\\a\\plugin-sdk\\plugin-sdk\\','' | Out-File -encoding ASCII output.log"
+          powershell -Command "foreach($line in Get-Content 'output.log') { $m = $line -match '^(.*)\((\d+),(\d+)\): (\w+) (.*) \[.*\]$'; if ($m) {$m = $Matches; echo ('::'+$m[4]+' file='+$m[1]+',line='+$m[2]+',title=SDK compilation::'+$m[5])} else {echo ('::error title=SDK compilation::' + $line)} }"
+          for %%R in (output.log) do if not %%~zR lss 1 (exit 1)
 
       - name: Core - VirusTotal Scan
         uses: crazy-max/ghaction-virustotal@v4
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: './.output/Release/CLEO.asi'
+        run: echo "::notice::Test note"
 
       - name: Plugins - Build
         shell: cmd
