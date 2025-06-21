@@ -38,11 +38,14 @@ jobs:
           for %%R in (output.log) do if not %%~zR lss 1 (exit 1)
 
       - name: Core - VirusTotal Scan
+        id: scan_core
         uses: crazy-max/ghaction-virustotal@v4
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: './.output/Release/CLEO.asi'
-        run: echo "::notice::Test note"
+          
+      - name: Core - VirusTotal Scan Log
+        run: echo "::notice::${{steps.scan_core.outputs.analysis}}"
 
       - name: Plugins - Build
         shell: cmd
