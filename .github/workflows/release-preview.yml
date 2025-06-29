@@ -10,19 +10,24 @@ on:
   create:
     tags-ignore:
       - preview
-    branches-ignore:
-      - !master
+    branches:
+      - master
 
   delete:
     tags-ignore:
       - preview
     branches-ignore:
-      - !master
+      - master
 
 jobs:
   Release_Preview:
     runs-on: windows-2022
     steps:
+      - name: Dump job github var
+        env:
+          GITHUB_VAR: ${{ toJson(github) }}
+        run: echo "$GITHUB_VAR"
+        
       - name: Delete 'preview' release
         uses: ClementTsang/delete-tag-and-release@v0.4.0
         with:
