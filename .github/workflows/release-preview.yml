@@ -10,14 +10,14 @@ on:
   create:
     tags-ignore:
       - preview
-    branches:
-      - master
+    branches-ignore:
+      - !master
 
   delete:
     tags-ignore:
       - preview
-    branches:
-      - master
+    branches-ignore:
+      - !master
 
 jobs:
   Release_Preview:
