@@ -9,7 +9,7 @@
 #endif
 #include <wtypes.h>
 
-#define CLEO_VERSION_MAIN	5
+#define CLEO_VERSION_MAIN	7
 #define CLEO_VERSION_MAJOR	0
 #define CLEO_VERSION_MINOR	4
 
