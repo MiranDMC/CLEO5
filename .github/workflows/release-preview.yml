@@ -10,17 +10,15 @@ on:
   create:
     tags-ignore:
       - preview
-    branches:
-      - master
 
   delete:
     tags-ignore:
       - preview
-    branches-ignore:
-      - master
 
 jobs:
   Release_Preview:
+    if: ${{ endsWith(github.ref, '/master') }}
+    
     runs-on: windows-2022
     steps:
       - name: Dump job github var
