@@ -13,8 +13,7 @@ on:
 
 jobs:
   Release_Preview:
-    if: github.ref_type != 'tag' || !endsWith(github.ref, '/preview') # ignore 'preview' tag
-    if: github.type != 'branch' || endsWith(github.ref, '/master') # only master branch
+    if: (github.ref_type != 'tag' || !endsWith(github.ref, '/preview')) && (github.type != 'branch' || endsWith(github.ref, '/master')) # ignore 'preview' tag, only master pushes
 
     runs-on: windows-2022
     steps:
