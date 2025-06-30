@@ -4,12 +4,14 @@ on:
   workflow_dispatch: # manually
 
   push:
-    paths-ignore:
-      - '.github/**'
-      - '**.bat'
-      - '**.chm'
-      - '**.ini'
-      - '**.md'
+    paths:
+      - '**.c*' ## .c and .cpp
+      - '**.h*' ## .h and .hpp
+      - '**.def'
+      - '**.lib'
+      - '**.rc'
+      - '**.vcproj'
+      - '**.sln'
 
 jobs:
   Test_Build:
