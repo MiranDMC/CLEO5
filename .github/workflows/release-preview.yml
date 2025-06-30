@@ -8,16 +8,16 @@ on:
       - master
 
   create:
-    tags-ignore:
-      - preview
+    branches:
+      - master
 
   delete:
-    tags-ignore:
-      - preview
+    branches:
+      - master
 
 jobs:
   Release_Preview:
-    #if: ${{ echo github.ref; endsWith(github.ref, '/master') }}
+    if: github.ref != 'refs/tags/preview' # ignore 'preview' tag
 
     runs-on: windows-2022
     steps:
