@@ -7,13 +7,11 @@ on:
     branches:
       - master
 
-  create:
-
-  delete:
+  create: # create branch or tag
 
 jobs:
   Release_Preview:
-    if: (github.ref_type != 'tag' || !endsWith(github.ref, '/preview')) && (github.ref_type != 'branch' || endsWith(github.ref, '/master')) # ignore 'preview' tag, only master pushes
+    if: (github.ref_type != 'tag' || !endsWith(github.ref, '/preview')) && (github.ref_type != 'branch' || endsWith(github.ref, '/master')) # ignore 'preview' tag, ignore pushes other than to master
 
     runs-on: windows-2022
     steps:
