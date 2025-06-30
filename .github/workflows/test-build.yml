@@ -4,18 +4,16 @@ on:
   workflow_dispatch: # manually
 
   push:
-    branches-ignore:
-      - master # master accepts only merges from already tested branches
     paths-ignore:
-      - '.github/*'
-      - '*.bat'
-      - '*.chm'
-      - '*.ini'
-      - '*.md'
+      - '.github/**'
+      - '**.bat'
+      - '**.chm'
+      - '**.ini'
+      - '**.md'
 
 jobs:
   Test_Build:
-    if: github.ref_type != 'tag' # skip on tag changes
+    if: github.ref_type == 'branch' && !endsWith(github.ref, '/master') # ignore pushes to master (already tested in source branch)
     
     runs-on: windows-2022
     steps:
