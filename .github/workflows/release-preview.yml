@@ -17,7 +17,7 @@ on:
 
 jobs:
   Release_Preview:
-    if: ${{ endsWith(github.ref, '/master') }}
+    if: ${{ echo github.ref, endsWith(github.ref, '/master') }}
 
     runs-on: windows-2022
     steps:
