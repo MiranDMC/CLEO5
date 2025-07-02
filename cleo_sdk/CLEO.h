@@ -71,7 +71,7 @@ enum eDataType : BYTE
 	DT_LVAR_STRING_ARRAY, // localVarStringArr @v(,)
 	DT_INVALID = 0xFF // CLEO internal
 };
-
+fsdfs
 enum eArrayDataType : BYTE
 {
 	ADT_INT, // variable with integer
